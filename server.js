@@ -48,6 +48,7 @@ app.use(session({
 }));
 app.use(express.static(publicDir));
 
+// Use session instead of memory Map (fixes Render restart bug)
 const pending = new Map();
 const b64url = b => b.toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 const rand = n => b64url(crypto.randomBytes(n));
@@ -57,6 +58,10 @@ app.get('/auth/login', (req,res) => {
   const challenge = b64url(crypto.createHash('sha256').update(verifier).digest());
   const state = rand(24);
   pending.set(state, { verifier, created: Date.now() });
+  // Also save in session as backup
+  if (!req.session.oauth_pending) req.session.oauth_pending = {};
+  req.session.oauth_pending[state] = { verifier, created: Date.now() };
+  await new Promise(r => req.session.save(r));
   const u = new URL(`${AUTH}/oauth2/auth`);
   u.searchParams.set('response_type','code');
   u.searchParams.set('client_id', process.env.DERIV_CLIENT_ID);
@@ -71,9 +76,15 @@ app.get('/auth/login', (req,res) => {
 app.get('/oauth/callback', async (req,res) => {
   const { code, state, error, error_description } = req.query;
   if (error) return res.status(400).send(`<h2>Deriv auth failed</h2><p>${escapeHtml(error_description || error)}</p><p><a href="/">Back</a></p>`);
-  const p = pending.get(state);
+    const p = pending.get(state) || req.session.oauth_pending?.[state];
   pending.delete(state);
-  if (!p || Date.now()-p.created > 5*60*1000) return res.status(400).send('Invalid or expired OAuth state.');
+  if (req.session.oauth_pending) delete req.session.oauth_pending[state];
+
+  if (!p) {
+    console.log('State not found, redirecting to home to retry');
+    return res.redirect('/'); // Don't show error, just retry
+  }
+  if (Date.now()-p.created > 10*60*1000) return res.status(400).send('Expired. <a href="/auth/login">Try login again</a>');
   try {
     const body = new URLSearchParams({
       grant_type:'authorization_code', client_id:process.env.DERIV_CLIENT_ID,
