@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlantic Waves - Deriv Digit Pilot</title>
+    <style>
+        :root {
+            --bg: #06101d;
+            --card: #0b192a;
+            --line: #1d334b;
+            --accent: #00d4ff;
+            --accent-glow: rgba(0, 212, 255, 0.2);
+            --green: #00e676;
+            --red: #ff3d71;
+            --text: #ffffff;
+            --text-dim: #8fa3bf;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: var(--text);
+        }
+
+        body {
+            background-color: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            height: 100vh;
+            max-height: 850px;
+            background-color: var(--bg);
+            border: 1px solid var(--line);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        @media(min-width: 481px) {
+            .app-container {
+                border-radius: 24px;
+            }
+        }
+
+        /* Top Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            background-color: var(--card);
+            border-bottom: 1px solid var(--line);
+        }
+
+        .brand-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-area svg {
+            width: 28px;
+            height: 28px;
+            fill: var(--accent);
+        }
+
+        .brand-title {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .brand-subtitle {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .mode-pill {
+            background: rgba(0, 212, 255, 0.1);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        /* Main Content Scrollable Area */
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding-bottom: 80px;
+        }
+
+        .tab-content {
+            display: none;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        /* Hero Card */
+        .hero-card {
+            background-color: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .hero-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hero-label {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .balance-val {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .pl-val {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .pl-val.positive { color: var(--green); }
+        .pl-val.negative { color: var(--red); }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 4px;
+            border-top: 1px solid var(--line);
+            padding-top: 10px;
+        }
+
+        .metric-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--red);
+        }
+
+        .dot.online {
+            background-color: var(--green);
+            box-shadow: 0 0 8px var(--green);
+        }
+
+        /* Strategy Status Card */
+        .strategy-card {
+            background-color: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .badge-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .strategy-badge {
+            background: rgba(255, 61, 113, 0.15);
+            color: var(--red);
+            border: 1px solid var(--red);
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 6px;
+            text-transform: uppercase;
+        }
+
+        .instrument-badge {
+            font-size: 11px;
+            color: var(--text-dim);
+            background: var(--bg);
+            padding: 3px 8px;
+            border-radius: 6px;
+            border: 1px solid var(--line);
+        }
+
+        .engine-display {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+        }
+
+        .engine-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        #engineText {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        #engineSub {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .last-digit-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            width: 44px;
+            height: 44px;
+        }
+
+        .last-digit-box span:first-child {
+            font-size: 9px;
+            color: var(--text-dim);
+        }
+
+        #lastDigit {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        #signalText {
+            font-size: 12px;
+            color: var(--text-dim);
+            text-align: center;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: var(--bg);
+            border-radius: 3px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+        }
+
+        .progress {
+            width: 0%;
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.2s ease;
+        }
+
+        /* Action Buttons */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: opacity 0.2s;
+        }
+
+        .btn:active {
+            opacity: 0.8;
+        }
+
+        .start-btn {
+            background-color: var(--green);
+            color: #06101d;
+        }
+
+        .stop-btn {
+            background-color: var(--red);
+            color: #ffffff;
+            display: none;
+        }
+
+        .connect-btn {
+            background-color: var(--accent);
+            color: #06101d;
+        }
+
+        .logout-btn {
+            background-color: transparent;
+            border: 1px solid var(--red);
+            color: var(--red);
+        }
+
+        /* Risk Notice */
+        .risk-notice {
+            font-size: 11px;
+            color: var(--text-dim);
+            line-height: 1.4;
+            background: var(--card);
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            text-align: center;
+        }
+
+        /* Trades List */
+        .trades-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .trades {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+
+        .trade-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--card);
+            border: 1px solid var(--line);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+        }
+
+        .trade-item.win { border-left: 3px solid var(--green); }
+        .trade-item.loss { border-left: 3px solid var(--red); }
+
+        /* Configuration Forms (Strategy / Risk / Account) */
+        .config-card {
+            background-color: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .input-group label {
+            font-size: 12px;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .input-group select, .input-group input {
+            background: var(--bg);
+            border: 1px solid var(--line);
+            padding: 10px;
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+        }
+
+        .input-group select:focus, .input-group input:focus {
+            border-color: var(--accent);
+        }
+
+        /* Bottom Nav */
+        .nav-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 65px;
+            background-color: var(--card);
+            border-top: 1px solid var(--line);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            color: var(--text-dim);
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            width: 25%;
+        }
+
+        .nav-item svg {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+            transition: fill 0.2s;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+        }
+
+        .nav-item.active svg {
+            fill: var(--accent);
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <!-- Top Header -->
+    <header class="header">
+        <div class="brand-area">
+            <svg viewBox="0 0 24 24"><path d="M2 12c2-3 4-3 6 0s4 3 6 0 4-3 6 0v2c-2-3-4-3-6 0s-4 3-6 0-4-3-6 0v-2z"/></svg>
+            <div>
+                <div class="brand-title">Atlantic Waves</div>
+                <div class="brand-subtitle">Deriv Digit Pilot</div>
+            </div>
+        </div>
+        <div class="mode-pill" id="modePill">Not Connected</div>
+    </header>
+
+    <!-- Main Content Area -->
+    <div class="content">
+
+        <!-- HOME TAB -->
+        <div id="tab-home" class="tab-content active">
+            <!-- Hero Card -->
+            <div class="hero-card">
+                <div class="hero-row">
+                    <span class="hero-label">Account Balance</span>
+                    <span class="balance-val" id="balance">$0.00</span>
+                </div>
+                <div class="hero-row">
+                    <span class="hero-label">Session P/L</span>
+                    <span class="pl-val" id="pl">$0.00</span>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <span class="dot" id="dot"></span>
+                        <span id="botStatus">READY</span>
+                    </div>
+                    <div class="metric-item" style="justify-content: flex-end;">
+                        <span id="serverText">OFFLINE</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Strategy Card -->
+            <div class="strategy-card">
+                <div class="badge-row">
+                    <span class="strategy-badge">Digit Differs</span>
+                    <span class="instrument-badge" id="instrument">1HZ100V</span>
+                </div>
+                <div class="engine-display">
+                    <div class="engine-info">
+                        <span id="engineText">Analyzing data stream...</span>
+                        <span id="engineSub">Waiting for ticks</span>
+                    </div>
+                    <div class="last-digit-box">
+                        <span>LAST</span>
+                        <span id="lastDigit">-</span>
+                    </div>
+                </div>
+                <div id="signalText">Signal calculation pending...</div>
+                <div class="progress-container">
+                    <div class="progress" id="progress"></div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <button class="btn start-btn" id="startBtn">Start Trading</button>
+            <button class="btn stop-btn" id="stopBtn">Stop Bot</button>
+
+            <!-- Risk Notice -->
+            <div class="risk-notice" id="riskNotice">
+                $1 starting stake · 1.70× progression · $8 maximum stake · 4-loss stop · $25 profit target · $15 daily loss limit
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="trades-section">
+                <div class="section-title">Recent Activity</div>
+                <div class="trades" id="trades">
+                    <div style="font-size: 11px; color: var(--text-dim); text-align: center; padding: 10px;">No trades executed yet</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STRATEGY TAB -->
+        <div id="tab-strategy" class="tab-content">
+            <div class="config-card">
+                <div class="section-title">Strategy Configuration</div>
+                <div class="input-group">
+                    <label>Instrument</label>
+                    <select id="instrumentSelect">
+                        <option value="1HZ100V">Volatility 100 (1s) Index</option>
+                        <option value="1HZ75V">Volatility 75 (1s) Index</option>
+                        <option value="R_100">Volatility 100 Index</option>
+                        <option value="R_75">Volatility 75 Index</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label>Analysis Window <span id="windowVal">200</span></label>
+                    <input type="range" id="window" min="50" max="500" step="10" value="200">
+                </div>
+                <div class="input-group">
+                    <label>Minimum Signal Strength <span id="strengthVal">3</span></label>
+                    <input type="range" id="strength" min="1" max="5" step="1" value="3">
+                </div>
+            </div>
+        </div>
+
+        <!-- RISK TAB -->
+        <div id="tab-risk" class="tab-content">
+            <div class="config-card">
+                <div class="section-title">Risk Management Rules</div>
+                <div class="input-group">
+                    <label>Starting Stake ($)</label>
+                    <input type="number" id="stakeInput" value="1.00" step="0.50" min="0.35">
+                </div>
+                <div class="input-group">
+                    <label>Loss Multiplier</label>
+                    <input type="number" id="multInput" value="1.70" step="0.05" min="1.00">
+                </div>
+                <div class="input-group">
+                    <label>Maximum Stake ($)</label>
+                    <input type="number" id="maxStakeInput" value="8.00" step="1.00" min="1.00">
+                </div>
+                <div class="input-group">
+                    <label>Max Consecutive Losses</label>
+                    <input type="number" id="maxLossInput" value="4" step="1" min="1">
+                </div>
+                <div class="input-group">
+                    <label>Daily Profit Target ($)</label>
+                    <input type="number" id="profitInput" value="25.00" step="1.00" min="1.00">
+                </div>
+                <div class="input-group">
+                    <label>Daily Loss Limit ($)</label>
+                    <input type="number" id="lossInput" value="15.00" step="1.00" min="1.00">
+                </div>
+            </div>
+        </div>
+
+        <!-- ACCOUNT TAB -->
+        <div id="tab-account" class="tab-content">
+            <div class="config-card">
+                <div class="section-title">Deriv Account Connection</div>
+                <div class="input-group">
+                    <label>Connection Status</label>
+                    <div id="connBadge" style="font-size: 13px; font-weight: 600; color: var(--red);">Disconnected</div>
+                </div>
+                <div class="input-group">
+                    <label>Login ID / Details</label>
+                    <span id="connText" style="font-size: 13px; color: var(--text-dim);">Not authorized</span>
+                </div>
+                <button class="btn connect-btn" id="connectDerivBtn" onclick="window.location.href='/auth/login'">Connect Deriv</button>
+                <button class="btn logout-btn" id="logoutBtn" style="display:none;" onclick="logoutUser()">Log Out</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="nav-bar">
+        <button class="nav-item active" onclick="switchTab('home', this)">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            Home
+        </button>
+        <button class="nav-item" onclick="switchTab('strategy', this)">
+            <svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg>
+            Strategy
+        </button>
+        <button class="nav-item" onclick="switchTab('risk', this)">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            Risk
+        </button>
+        <button class="nav-item" onclick="switchTab('account', this)">
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            Account
+        </button>
+    </nav>
+</div>
+
+<script>
+    // State management & Application Variables
+    let appState = {
+        connected: false,
+        token: null,
+        clientId: null,
+        ws: null,
+        isTrading: false,
+        sessionPL: 0,
+        balance: 0,
+        consecutiveLosses: 0,
+        currentStake: 1.00,
+        digits: [],
+        currentSymbol: '1HZ100V',
+        activeContractId: null,
+        signalStrengthPct: 0
+    };
+
+    // DOM Elements mapping
+    const el = {
+        modePill: document.getElementById('modePill'),
+        balance: document.getElementById('balance'),
+        pl: document.getElementById('pl'),
+        botStatus: document.getElementById('botStatus'),
+        dot: document.getElementById('dot'),
+        serverText: document.getElementById('serverText'),
+        instrument: document.getElementById('instrument'),
+        lastDigit: document.getElementById('lastDigit'),
+        signalText: document.getElementById('signalText'),
+        engineText: document.getElementById('engineText'),
+        engineSub: document.getElementById('engineSub'),
+        progress: document.getElementById('progress'),
+        startBtn: document.getElementById('startBtn'),
+        stopBtn: document.getElementById('stopBtn'),
+        riskNotice: document.getElementById('riskNotice'),
+        trades: document.getElementById('trades'),
+        window: document.getElementById('window'),
+        windowVal: document.getElementById('windowVal'),
+        strength: document.getElementById('strength'),
+        strengthVal: document.getElementById('strengthVal'),
+        instrumentSelect: document.getElementById('instrumentSelect'),
+        stakeInput: document.getElementById('stakeInput'),
+        multInput: document.getElementById('multInput'),
+        maxStakeInput: document.getElementById('maxStakeInput'),
+        maxLossInput: document.getElementById('maxLossInput'),
+        profitInput: document.getElementById('profitInput'),
+        lossInput: document.getElementById('lossInput'),
+        connText: document.getElementById('connText'),
+        connBadge: document.getElementById('connBadge'),
+        connectDerivBtn: document.getElementById('connectDerivBtn'),
+        logoutBtn: document.getElementById('logoutBtn')
+    };
+
+    // Tab Navigation Logic
+    function switchTab(tabName, btnElement) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        document.getElementById(`tab-${tabName}`).classList.add('active');
+        btnElement.classList.add('active');
+    }
+
+    // Input Dynamic Link Listeners
+    el.window.addEventListener('input', (e) => { el.windowVal.textContent = e.target.value; });
+    el.strength.addEventListener('input', (e) => { el.strengthVal.textContent = e.target.value; });
+    el.instrumentSelect.addEventListener('change', (e) => {
+        appState.currentSymbol = e.target.value;
+        el.instrument.textContent = e.target.value;
+        appState.digits = []; // Reset collected history on symbol change
+        if (appState.ws && appState.ws.readyState === WebSocket.OPEN) {
+            subscribeTicks();
+        }
+    });
+
+    // 1. Fetch token and connection info from /api/me
+    async function checkAuthSession() {
+        try {
+            const res = await fetch('/api/me');
+            const data = await res.json();
+            if (data && data.connected && data.tokens && data.tokens.access_token) {
+                appState.connected = true;
+                appState.token = data.tokens.access_token;
+                appState.clientId = data.client_id;
+                
+                el.modePill.textContent = "LIVE";
+                el.connBadge.textContent = "Connected";
+                el.connBadge.style.color = "var(--green)";
+                el.connText.textContent = `Login ID: ${appState.clientId || 'Authorized'}`;
+                el.connectDerivBtn.style.display = 'none';
+                el.logoutBtn.style.display = 'block';
+
+                initDerivWebSocket(data.client_id);
+            } else {
+                handleDisconnectedState();
+            }
+        } catch (err) {
+            console.warn("Backend /api/me check fallback simulated/failed:", err);
+            handleDisconnectedState();
+        }
+    }
+
+    function handleDisconnectedState() {
+        appState.connected = false;
+        el.modePill.textContent = "NOT CONNECTED";
+        el.connBadge.textContent = "Disconnected";
+        el.connBadge.style.color = "var(--red)";
+        el.connText.textContent = "Not authorized";
+        el.connectDerivBtn.style.display = 'block';
+        el.logoutBtn.style.display = 'none';
+        el.serverText.textContent = "OFFLINE";
+        el.dot.classList.remove('online');
+    }
+
+    function logoutUser() {
+        fetch('/auth/logout').then(() => {
+            window.location.reload();
+        }).catch(() => {
+            window.location.reload();
+        });
+    }
+
+    // 2. Initialize Deriv WebSocket Connection & Authorize
+    function initDerivWebSocket(appId) {
+        const wsUrl = `wss://ws.derivws.com/websockets/v3?app_id=${appId || '1089'}`;
+        appState.ws = new WebSocket(wsUrl);
+
+        appState.ws.onopen = () => {
+            el.serverText.textContent = "ONLINE";
+            el.dot.classList.add('online');
+            // Authorize
+            appState.ws.send(JSON.stringify({ authorize: appState.token }));
+        };
+
+        appState.ws.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            handleWsMessage(data);
+        };
+
+        appState.ws.onerror = () => {
+            el.serverText.textContent = "ERROR";
+            el.dot.classList.remove('online');
+        };
+
+        appState.ws.onclose = () => {
+            el.serverText.textContent = "OFFLINE";
+            el.dot.classList.remove('online');
+            setTimeout(checkAuthSession, 5000); // Try reconnecting
+        };
+    }
+
+    function subscribeTicks() {
+        if (!appState.ws || appState.ws.readyState !== WebSocket.OPEN) return;
+        // Unsubscribe or send new subscription payload
+        appState.ws.send(JSON.stringify({ ticks: appState.currentSymbol, subscribe: 1 }));
+    }
+
+    // Handle incoming WS messages
+    function handleWsMessage(data) {
+        const msgType = data.msg_type;
+
+        if (msgType === 'authorize') {
+            if (data.error) {
+                console.error("Authorization failed:", data.error.message);
+                handleDisconnectedState();
+                return;
+            }
+            // Subscribe balance & ticks upon successful authorization
+            appState.ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
+            subscribeTicks();
+        }
+
+        if (msgType === 'balance') {
+            if (data.balance) {
+                appState.balance = parseFloat(data.balance.balance);
+                el.balance.textContent = `$${appState.balance.toFixed(2)}`;
+            }
+        }
+
+        // 3. Collect ticks & process last digits
+        if (msgType === 'tick') {
+            if (data.tick && data.tick.quote) {
+                const quoteStr = data.tick.quote.toString();
+                const lastChar = parseInt(quoteStr.slice(-1), 10);
+                
+                el.lastDigit.textContent = lastChar;
+                
+                const windowSize = parseInt(el.window.value, 10);
+                appState.digits.push(lastChar);
+                if (appState.digits.length > windowSize) {
+                    appState.digits.shift();
+                }
+
+                // Update progress bar ratio based on window size
+                const progressPct = Math.min(100, (appState.digits.length / windowSize) * 100);
+                el.progress.style.width = `${progressPct}%`;
+
+                // 4. Calculate frequencies & strength when enough digits are gathered
+                if (appState.digits.length >= windowSize) {
+                    processDigitAnalytics();
+                } else {
+                    el.engineText.textContent = "Collecting Stream Data...";
+                    el.engineSub.textContent = `${appState.digits.length} / ${windowSize} ticks`;
+                }
+            }
+        }
+
+        // 5. Handle Proposal Response
+        if (msgType === 'proposal') {
+            if (data.error) {
+                console.error("Proposal Error:", data.error.message);
+                return;
+            }
+            if (data.proposal) {
+                // Execute Buy action immediately
+                appState.ws.send(JSON.stringify({
+                    buy: data.proposal.id,
+                    price: data.proposal.ask_price
+                }));
+            }
+        }
+
+        // Handle Buy Response
+        if (msgType === 'buy') {
+            if (data.error) {
+                console.error("Buy Error:", data.error.message);
+                return;
+            }
+            if (data.buy) {
+                appState.activeContractId = data.buy.contract_id;
+                // Subscribe to contract open status updates
+                appState.ws.send(JSON.stringify({
+                    proposal_open_contract: 1,
+                    contract_id: appState.activeContractId,
+                    subscribe: 1
+                }));
+            }
+        }
+
+        // Handle Contract Status updates
+        if (msgType === 'proposal_open_contract') {
+            const contract = data.proposal_open_contract;
+            if (contract && contract.is_sold) {
+                const profit = parseFloat(contract.profit);
+                const isWin = profit > 0;
+                
+                // Update Session P/L and consecutive counts
+                appState.sessionPL += profit;
+                el.pl.textContent = `${appState.sessionPL >= 0 ? '+' : ''}$${appState.sessionPL.toFixed(2)}`;
+                el.pl.className = `pl-val ${appState.sessionPL >= 0 ? 'positive' : 'negative'}`;
+
+                const startingStake = parseFloat(el.stakeInput.value);
+                const multiplier = parseFloat(el.multInput.value);
+                const maxStake = parseFloat(el.maxStakeInput.value);
+
+                if (isWin) {
+                    appState.consecutiveLosses = 0;
+                    appState.currentStake = startingStake;
+                } else {
+                    appState.consecutiveLosses++;
+                    appState.currentStake = Math.min(maxStake, appState.currentStake * multiplier);
+                }
+
+                // Push to recent activity view
+                appendTradeActivity(contract, isWin, profit);
+
+                // 6. Check Risk Limits Gates
+                checkRiskGates();
+
+                // Clear active contract reference
+                appState.activeContractId = null;
+            }
+        }
+    }
+
+    // 4. Frequency analytics & trade trigger evaluation
+    function processDigitAnalytics() {
+        const counts = Array(10).fill(0);
+        appState.digits.forEach(d => counts[d]++);
+
+        let leastDigit = 0;
+        let mostDigit = 0;
+
+        for (let i = 1; i < 10; i++) {
+            if (counts[i] < counts[leastDigit]) leastDigit = i;
+            if (counts[i] > counts[mostDigit]) mostDigit = i;
+        }
+
+        const windowSize = appState.digits.length;
+        const strength = ((counts[mostDigit] - counts[leastDigit]) / windowSize) * 100;
+        appState.signalStrengthPct = strength;
+
+        el.engineText.textContent = `Avoid ${leastDigit} (${counts[leastDigit]}x) | Most ${mostDigit} (${counts[mostDigit]}x)`;
+        el.engineSub.textContent = `Strength: ${strength.toFixed(1)}%`;
+        el.signalText.textContent = `Optimal barrier for DIFF: Avoid Digit [${leastDigit}]`;
+
+        // Check if trading is active, no contract is running, and signal satisfies min strength threshold
+        const minStrengthSetting = parseInt(el.strength.value, 10) * 10;
+        if (appState.isTrading && !appState.activeContractId && strength >= minStrengthSetting) {
+            executeTrade(leastDigit);
+        }
+    }
+
+    // 5. Place automated trade request
+    function executeTrade(barrierDigit) {
+        if (!appState.ws || appState.ws.readyState !== WebSocket.OPEN) return;
+
+        appState.ws.send(JSON.stringify({
+            proposal: 1,
+            amount: appState.currentStake,
+            basis: 'stake',
+            contract_type: 'DIGITDIFF',
+            barrier: barrierDigit.toString(),
+            currency: 'USD',
+            duration: 1,
+            duration_unit: 't',
+            symbol: appState.currentSymbol
+        }));
+    }
+
+    // Append trade item to the UI activity list
+    function appendTradeActivity(contract, isWin, profit) {
+        if (el.trades.children.length === 1 && el.trades.children[0].tagName === 'DIV' && el.trades.children[0].innerText.includes('No trades')) {
+            el.trades.innerHTML = '';
+        }
+
+        const item = document.createElement('div');
+        item.className = `trade-item ${isWin ? 'win' : 'loss'}`;
+        item.innerHTML = `
+            <span>#${contract.contract_id} (${contract.symbol})</span>
+            <span>Stake: $${contract.buy_price}</span>
+            <span style="color: ${isWin ? 'var(--green)' : 'var(--red)'}">${isWin ? '+' : ''}$${profit.toFixed(2)}</span>
+        `;
+        el.trades.prepend(item);
+    }
+
+    // 6. Risk Gate enforcement
+    function checkRiskGates() {
+        const profitTarget = parseFloat(el.profitInput.value);
+        const dailyLossLimit = parseFloat(el.lossInput.value);
+        const maxLossCount = parseInt(el.maxLossInput.value, 10);
+
+        let stopReason = null;
+        if (appState.sessionPL >= profitTarget) {
+            stopReason = `Target Reached! Session Profit: $${appState.sessionPL.toFixed(2)}`;
+        } else if (appState.sessionPL <= -dailyLossLimit) {
+            stopReason = `Daily Loss Limit Triggered! Loss: $${appState.sessionPL.toFixed(2)}`;
+        } else if (appState.consecutiveLosses >= maxLossCount) {
+            stopReason = `Max Consecutive Losses (${appState.consecutiveLosses}) Reached!`;
+        }
+
+        if (stopReason) {
+            stopBotState();
+            alert(stopReason);
+        }
+    }
+
+    // 7. Start / Stop Bot Button Event Handlers
+    el.startBtn.addEventListener('click', () => {
+        if (!appState.connected || !appState.token) {
+            alert("Please connect your Deriv Account first via the Account tab.");
+            switchTab('account', document.querySelectorAll('.nav-item')[3]);
+            return;
+        }
+
+        if (appState.digits.length < parseInt(el.window.value, 10)) {
+            alert("Collecting historical analysis ticks. Please wait a few seconds...");
+            return;
+        }
+
+        appState.isTrading = true;
+        appState.sessionPL = 0;
+        appState.consecutiveLosses = 0;
+        appState.currentStake = parseFloat(el.stakeInput.value);
+
+        el.pl.textContent = "$0.00";
+        el.pl.className = "pl-val";
+        el.botStatus.textContent = "ACTIVE";
+        el.dot.classList.add('online');
+        el.startBtn.style.display = 'none';
+        el.stopBtn.style.display = 'block';
+    });
+
+    el.stopBtn.addEventListener('click', stopBotState);
+
+    function stopBotState() {
+        appState.isTrading = false;
+        el.botStatus.textContent = "READY";
+        el.startBtn.style.display = 'block';
+        el.stopBtn.style.display = 'none';
+    }
+
+    // Initialize session verification check on load
+    window.addEventListener('DOMContentLoaded', () => {
+        checkAuthSession();
+    });
+</script>
+
+</body>
+</html>
+
