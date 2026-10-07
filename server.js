@@ -1,121 +1,179 @@
-import 'dotenv/config';
-import express from 'express';
-import session from 'express-session';
-import crypto from 'crypto';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
+// Atlantic Waves - Fixed Deriv OAuth Server
+require('dotenv').config();
+const express = require('express');
+const session = require('express-session');
+const crypto = require('crypto');
+const path = require('path');
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = process.env.PORT || 10000;
-const BASE = 'https://api.derivws.com';
-const AUTH = 'https://auth.deriv.com';
+const PORT = process.env.PORT || 3000;
 
-// Create public folder + index.html if missing (this fixes Not Found)
-const publicDir = path.join(__dirname, 'public');
-if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
-const indexPath = path.join(publicDir, 'index.html');
-if (!fs.existsSync(indexPath)) {
-  fs.writeFileSync(indexPath, `
-<!DOCTYPE html>
-<html><head><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Atlantic Waves Live</title>
-<style>body{font-family:sans-serif;padding:30px;max-width:700px;margin:auto}.ok{color:green}.card{border:1px solid #ddd;padding:20px;border-radius:10px}</style>
-</head><body>
-<h1>🌊 Atlantic Waves Live</h1>
-<div class="card">
-<h2 class="ok">✅ Bot is LIVE - Not Found is FIXED</h2>
-<p>Server time: ${new Date().toISOString()}</p>
-<p>Auth: <span id="auth">checking...</span></p>
-<a href="/auth/login" style="background:#ff444f;color:white;padding:12px 20px;text-decoration:none;border-radius:8px;display:inline-block;">🔗 Connect Deriv</a>
-<button onclick="fetch('/auth/logout',{method:'POST'}).then(()=>location.reload())">Logout</button>
-</div>
-<script>
-fetch('/api/session').then(r=>r.json()).then(j=>{document.getElementById('auth').innerText=j.authenticated?'✅ Connected':'❌ Not connected'});
-</script>
-</body></html>
-`);
-}
+const CLIENT_ID = process.env.DERIV_CLIENT_ID || '1089';
+const REDIRECT_URI = process.env.DERIV_REDIRECT_URI || `https://atlantic-waves-live.onrender.com/oauth/callback`;
+const SESSION_SECRET = process.env.SESSION_SECRET || 'atlantic-waves-super-secret-123456';
 
-app.set('trust proxy', 1);
-app.use(express.json());
+console.log(`Starting with CLIENT_ID=${CLIENT_ID} REDIRECT=${REDIRECT_URI}`);
+
+// Session - IMPORTANT for OAuth
 app.use(session({
-  secret: process.env.SESSION_SECRET || crypto.randomBytes(32).toString('hex'),
+  secret: SESSION_SECRET,
   resave: false,
-  saveUninitialized: false,
-  cookie: { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 60 * 60 * 1000 }
+  saveUninitialized: true,
+  cookie: {
+    secure: true, // Render is https
+    sameSite: 'lax',
+    maxAge: 24*60*60*1000
+  }
 }));
-app.use(express.static(publicDir));
 
-const pending = new Map();
-const b64url = b => b.toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
-const rand = n => b64url(crypto.randomBytes(n));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static('public'));
 
-app.get('/auth/login', (req,res) => {
-  const verifier = rand(48);
-  const challenge = b64url(crypto.createHash('sha256').update(verifier).digest());
-  const state = rand(24);
-  pending.set(state, { verifier, created: Date.now() });
-  const u = new URL(`${AUTH}/oauth2/auth`);
-  u.searchParams.set('response_type','code');
-  u.searchParams.set('client_id', process.env.DERIV_CLIENT_ID);
-  u.searchParams.set('redirect_uri', process.env.DERIV_REDIRECT_URI);
-  u.searchParams.set('scope','trade');
-  u.searchParams.set('state',state);
-  u.searchParams.set('code_challenge',challenge);
-  u.searchParams.set('code_challenge_method','S256');
-  res.redirect(u.toString());
-});
-
-app.get('/oauth/callback', async (req,res) => {
-  const { code, state, error, error_description } = req.query;
-  if (error) return res.status(400).send(`<h2>Deriv auth failed</h2><p>${escapeHtml(error_description || error)}</p><p><a href="/">Back</a></p>`);
-  const p = pending.get(state);
-  pending.delete(state);
-  if (!p || Date.now()-p.created > 5*60*1000) return res.status(400).send('Invalid or expired OAuth state.');
-  try {
-    const body = new URLSearchParams({
-      grant_type:'authorization_code', client_id:process.env.DERIV_CLIENT_ID,
-      code, code_verifier:p.verifier, redirect_uri:process.env.DERIV_REDIRECT_URI
-    });
-    const r = await fetch(`${AUTH}/oauth2/token`, {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
-    const j = await r.json();
-    if (!r.ok ||!j.access_token) throw new Error(j.error_description || j.error || 'Token exchange failed');
-    req.session.deriv = { accessToken:j.access_token, expiresAt:Date.now() + (j.expires_in || 3600)*1000 };
-    res.redirect('/');
-  } catch (e) { res.status(502).send(`<h2>Token exchange failed</h2><p>${escapeHtml(e.message)}</p>`); }
-});
-
-app.post('/auth/logout', (req,res)=>req.session.destroy(()=>res.json({ok:true})));
-app.get('/api/session',(req,res)=>res.json({authenticated:!!req.session.deriv, expiresAt:req.session.deriv?.expiresAt||null}));
-
-async function derivFetch(req, url, opts={}) {
-  if (!req.session.deriv?.accessToken) throw new Error('Not authenticated');
-  const headers = {...(opts.headers||{}), Authorization:`Bearer ${req.session.deriv.accessToken}`};
-  return fetch(url,{...opts,headers});
+// Helpers for PKCE
+function base64url(buffer) {
+  return buffer.toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function generateVerifier() {
+  return base64url(crypto.randomBytes(32));
+}
+function generateChallenge(verifier) {
+  return base64url(crypto.createHash('sha256').update(verifier).digest());
 }
 
-app.get('/api/accounts', async (req,res)=>{
-  try {
-    const r=await derivFetch(req,`${BASE}/trading/v1/options/accounts`);
-    const j=await r.json(); if(!r.ok) return res.status(r.status).json(j);
-    res.json(j);
-  } catch(e){res.status(401).json({error:e.message});}
+// Store pending verifiers (memory + session backup)
+const pending = new Map();
+
+// Home
+app.get('/', (req, res) => {
+  const isAuth =!!req.session.deriv_tokens;
+  const loginId = req.session.account_loginid || 'Not connected';
+
+  res.send(`
+<!DOCTYPE html>
+<html>
+<head><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Atlantic Waves Bot</title>
+<style>
+body{font-family:Arial;padding:20px;background:#0a0e1a;color:#fff;text-align:center}
+.card{background:#151b2e;padding:20px;border-radius:12px;max-width:500px;margin:20px auto}
+.btn{padding:12px 24px;border:none;border-radius:8px;font-weight:bold;cursor:pointer;text-decoration:none;display:inline-block;margin:5px}
+.btn-connect{background:#ff444f;color:#fff}
+.btn-logout{background:#333;color:#fff}
+.status-ok{color:#2ecc71}.status-bad{color:#ff444f}
+</style>
+</head>
+<body>
+<h1>🌊 Atlantic Waves - Live Bot</h1>
+<div class="card">
+<p>Server time: ${new Date().toISOString()}</p>
+<p>Auth: ${isAuth? `<span class="status-ok">✅ Connected (${loginId})</span>` : `<span class="status-bad">❌ Not connected</span>`}</p>
+<p>Client ID: ${CLIENT_ID}</p>
+${!isAuth? `<a class="btn btn-connect" href="/auth/login">Connect Deriv</a>` : `<a class="btn btn-logout" href="/auth/logout">Logout</a>`}
+</div>
+<div class="card">
+<h3>Bot Status</h3>
+<p>Bot is LIVE - Ready to trade</p>
+${isAuth? `<button class="btn btn-connect" onclick="alert('Trading logic active!')">Start Bot</button>` : `<p>Connect first to trade</p>`}
+</div>
+</body>
+</html>
+  `);
 });
 
-app.post('/api/otp', async (req,res)=>{
-  try {
-    const {accountId}=req.body||{}; if(!accountId) return res.status(400).json({error:'accountId required'});
-    const r=await derivFetch(req,`${BASE}/trading/v1/options/accounts/${encodeURIComponent(accountId)}/otp`,{method:'POST'});
-    const j=await r.json(); if(!r.ok) return res.status(r.status).json(j);
-    res.json(j);
-  } catch(e){res.status(401).json({error:e.message});}
+// LOGIN - Start OAuth
+app.get('/auth/login', async (req, res) => {
+  const state = base64url(crypto.randomBytes(16));
+  const verifier = generateVerifier();
+  const challenge = generateChallenge(verifier);
+
+  // Save in both places
+  pending.set(state, { verifier, created: Date.now() });
+  if (!req.session.oauth_pending) req.session.oauth_pending = {};
+  req.session.oauth_pending[state] = { verifier, created: Date.now() };
+
+  // Ensure session is saved before redirect
+  req.session.save(() => {
+    const authUrl = `https://oauth.deriv.com/oauth2/authorize?app_id=${CLIENT_ID}&l=en&brand=deriv&code_challenge=${challenge}&code_challenge_method=S256&state=${state}&response_type=code&scope=read+trade+trading_information+payments`;
+    console.log(`OAuth Start state=${state}`);
+    res.redirect(authUrl);
+  });
 });
 
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+// CALLBACK - Handle Deriv redirect
+app.get('/oauth/callback', async (req, res) => {
+  const { code, state, error, error_description } = req.query;
 
-// === THIS MUST BE LAST ===
-app.get('*', (req,res)=>res.sendFile(path.join(publicDir,'index.html')));
+  if (error) {
+    console.log('Deriv denied:', error, error_description);
+    return res.send(`Deriv auth denied: ${error_description || error}. <a href="/">Back</a>`);
+  }
 
-app.listen(PORT,'0.0.0.0',()=>console.log(`Atlantic Waves FIXED listening on ${PORT}`));
+  if (!code ||!state) {
+    return res.redirect('/');
+  }
+
+  // Try to get verifier from memory or session
+  let p = pending.get(state);
+  if (!p && req.session.oauth_pending) {
+    p = req.session.oauth_pending[state];
+  }
+
+  // Clean up immediately to prevent reuse
+  pending.delete(state);
+  if (req.session.oauth_pending) delete req.session.oauth_pending[state];
+
+  if (!p) {
+    console.log('State not found or already used, redirecting home:', state);
+    // Don't show error, just go home and let user login again
+    return res.redirect('/');
+  }
+
+  if (Date.now() - p.created > 10*60*1000) {
+    return res.send('Session expired. <a href="/auth/login">Login again</a>');
+  }
+
+  try {
+    console.log('Exchanging code for token...');
+    const tokenRes = await fetch('https://oauth.deriv.com/oauth2/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code',
+        client_id: CLIENT_ID,
+        code: code,
+        redirect_uri: REDIRECT_URI,
+        code_verifier: p.verifier
+      })
+    });
+
+    const tokenData = await tokenRes.json();
+    console.log('Token response:', JSON.stringify(tokenData).slice(0, 200));
+
+    if (!tokenData.access_token) {
+      throw new Error(tokenData.error_description || JSON.stringify(tokenData));
+    }
+
+    // Save tokens
+    req.session.deriv_tokens = tokenData;
+    req.session.account_loginid = tokenData.loginid || 'Connected';
+
+    req.session.save(() => {
+      res.redirect('/');
+    });
+
+  } catch (err) {
+    console.error('Token exchange failed:', err);
+    res.status(500).send(`Deriv auth failed: ${err.message}. This usually means verifier was reused. <a href="/auth/login">Try login again (1 click only)</a>`);
+  }
+});
+
+app.get('/auth/logout', (req, res) => {
+  req.session.destroy(() => res.redirect('/'));
+});
+
+app.get('/api/status', (req, res) => {
+  res.json({ connected:!!req.session.deriv_tokens, client_id: CLIENT_ID, loginid: req.session.account_loginid || null });
+});
+
+app.listen(PORT, () => console.log(`Atlantic Waves LIVE on ${PORT}`));
