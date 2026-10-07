@@ -92,4 +92,12 @@ app.post('/api/otp', async (req,res)=>{
 
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 app.get('*', (req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
+app.get('/', (req, res) => {
+  res.send(`
+    <h1>🌊 Atlantic Waves Live is Running!</h1>
+    <p>Bot Status: <b>Live</b></p>
+    <p><a href="/oauth/callback">Connect Deriv</a></p>
+    <p>Server time: ${new Date().toISOString()}</p>
+  `);
+});
 app.listen(PORT,()=>console.log(`Atlantic Waves listening on http://localhost:${PORT}`));
