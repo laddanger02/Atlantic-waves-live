@@ -3,16 +3,39 @@ import express from 'express';
 import session from 'express-session';
 import crypto from 'crypto';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 const BASE = 'https://api.derivws.com';
 const AUTH = 'https://auth.deriv.com';
 
-if (!process.env.DERIV_CLIENT_ID || !process.env.DERIV_REDIRECT_URI || !process.env.SESSION_SECRET) {
-  console.warn('Set DERIV_CLIENT_ID, DERIV_REDIRECT_URI and SESSION_SECRET in .env before live use.');
+// Create public folder + index.html if missing (this fixes Not Found)
+const publicDir = path.join(__dirname, 'public');
+if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
+const indexPath = path.join(publicDir, 'index.html');
+if (!fs.existsSync(indexPath)) {
+  fs.writeFileSync(indexPath, `
+<!DOCTYPE html>
+<html><head><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atlantic Waves Live</title>
+<style>body{font-family:sans-serif;padding:30px;max-width:700px;margin:auto}.ok{color:green}.card{border:1px solid #ddd;padding:20px;border-radius:10px}</style>
+</head><body>
+<h1>🌊 Atlantic Waves Live</h1>
+<div class="card">
+<h2 class="ok">✅ Bot is LIVE - Not Found is FIXED</h2>
+<p>Server time: ${new Date().toISOString()}</p>
+<p>Auth: <span id="auth">checking...</span></p>
+<a href="/auth/login" style="background:#ff444f;color:white;padding:12px 20px;text-decoration:none;border-radius:8px;display:inline-block;">🔗 Connect Deriv</a>
+<button onclick="fetch('/auth/logout',{method:'POST'}).then(()=>location.reload())">Logout</button>
+</div>
+<script>
+fetch('/api/session').then(r=>r.json()).then(j=>{document.getElementById('auth').innerText=j.authenticated?'✅ Connected':'❌ Not connected'});
+</script>
+</body></html>
+`);
 }
 
 app.set('trust proxy', 1);
@@ -23,7 +46,7 @@ app.use(session({
   saveUninitialized: false,
   cookie: { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 60 * 60 * 1000 }
 }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(publicDir));
 
 const pending = new Map();
 const b64url = b => b.toString('base64').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
@@ -47,7 +70,7 @@ app.get('/auth/login', (req,res) => {
 
 app.get('/oauth/callback', async (req,res) => {
   const { code, state, error, error_description } = req.query;
-  if (error) return res.status(400).send(`<h2>Deriv authorization failed</h2><p>${escapeHtml(error_description || error)}</p><p><a href="/">Back to Atlantic Waves</a></p>`);
+  if (error) return res.status(400).send(`<h2>Deriv auth failed</h2><p>${escapeHtml(error_description || error)}</p><p><a href="/">Back</a></p>`);
   const p = pending.get(state);
   pending.delete(state);
   if (!p || Date.now()-p.created > 5*60*1000) return res.status(400).send('Invalid or expired OAuth state.');
@@ -58,10 +81,10 @@ app.get('/oauth/callback', async (req,res) => {
     });
     const r = await fetch(`${AUTH}/oauth2/token`, {method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body});
     const j = await r.json();
-    if (!r.ok || !j.access_token) throw new Error(j.error_description || j.error || 'Token exchange failed');
+    if (!r.ok ||!j.access_token) throw new Error(j.error_description || j.error || 'Token exchange failed');
     req.session.deriv = { accessToken:j.access_token, expiresAt:Date.now() + (j.expires_in || 3600)*1000 };
     res.redirect('/');
-  } catch (e) { res.status(502).send(`<h2>Deriv token exchange failed</h2><p>${escapeHtml(e.message)}</p>`); }
+  } catch (e) { res.status(502).send(`<h2>Token exchange failed</h2><p>${escapeHtml(e.message)}</p>`); }
 });
 
 app.post('/auth/logout', (req,res)=>req.session.destroy(()=>res.json({ok:true})));
@@ -91,13 +114,8 @@ app.post('/api/otp', async (req,res)=>{
 });
 
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-app.get('*', (req,res)=>res.sendFile(path.join(__dirname,'public','index.html')));
-app.get('/', (req, res) => {
-  res.send(`
-    <h1>🌊 Atlantic Waves Live is Running!</h1>
-    <p>Bot Status: <b>Live</b></p>
-    <p><a href="/oauth/callback">Connect Deriv</a></p>
-    <p>Server time: ${new Date().toISOString()}</p>
-  `);
-});
-app.listen(PORT,()=>console.log(`Atlantic Waves listening on http://localhost:${PORT}`));
+
+// === THIS MUST BE LAST ===
+app.get('*', (req,res)=>res.sendFile(path.join(publicDir,'index.html')));
+
+app.listen(PORT,'0.0.0.0',()=>console.log(`Atlantic Waves FIXED listening on ${PORT}`));
