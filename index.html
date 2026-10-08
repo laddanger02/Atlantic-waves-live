@@ -1,17 +1,410 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#07111f"><meta name="apple-mobile-web-app-capable" content="yes"><title>Atlantic Waves — Live</title><link rel="manifest" href="manifest.json"><link rel="icon" href="icon.svg" type="image/svg+xml"><style>
-:root{--bg:#06101d;--card:#0b192a;--card2:#102238;--line:#1d334b;--text:#f3f7fb;--muted:#91a5bb;--accent:#25b9ff;--danger:#ff5364;--good:#37d38a;--warn:#ffc857}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% -10%,#0f3c5d 0,#06101d 38%);color:var(--text);font-family:Inter,system-ui,sans-serif;min-height:100vh}.app{max-width:520px;margin:auto;min-height:100vh;padding-bottom:86px}.top{padding:22px 18px 10px;display:flex;align-items:center;justify-content:space-between}.brand{display:flex;gap:11px;align-items:center}.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(145deg,#27c7ff,#1360ff);display:grid;place-items:center}.logo svg{width:30px}.brand b{font-size:20px}.brand small{display:block;color:var(--muted);margin-top:2px}.pill{border:1px solid #27506c;background:#0a2335;padding:7px 10px;border-radius:99px;font-size:11px;color:#82dfff}.hero{margin:10px 16px;padding:20px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(160deg,#0e2338,#091624)}.label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.3px}.balance{font-size:36px;font-weight:800;margin:5px 0}.pl{font-weight:700}.good{color:var(--good)}.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}.metric{background:#081525;border:1px solid var(--line);border-radius:16px;padding:14px}.metric b{display:block;font-size:19px;margin-top:5px}.section{padding:8px 16px}.section h2{font-size:15px;margin:10px 2px}.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:12px}.row{display:flex;justify-content:space-between;align-items:center;gap:12px}.muted{color:var(--muted)}.value{font-weight:700}.btn{width:100%;border:0;border-radius:15px;padding:15px;font-weight:800;font-size:15px;cursor:pointer;margin-top:9px}.start{background:linear-gradient(135deg,#22baff,#1877ff);color:#fff}.stop{background:#24121a;color:#ff8591;border:1px solid #5a2632}.secondary{background:#102238;color:#cceeff;border:1px solid #24435e}.danger{background:#3a1219;color:#ffb0b8;border:1px solid #6b2732}.field{margin:13px 0}.field label{font-size:12px;color:var(--muted)}select,input{width:100%;background:#081525;color:#fff;border:1px solid #28435d;border-radius:12px;padding:12px;font:inherit;margin-top:7px}.notice{padding:11px 13px;border-radius:13px;background:#211b0d;border:1px solid #594819;color:#f2d48a;font-size:12px;line-height:1.45}.hidden{display:none}.trade{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;border-top:1px solid var(--line);padding:12px 0}.badge{font-size:10px;padding:5px 8px;border-radius:8px;background:#12301f;color:#6ff0aa}.loss{background:#35151c;color:#ff8792}.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:520px;width:100%;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#071321ee;backdrop-filter:blur(16px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);z-index:10}.nav button{background:none;border:0;color:#71869c;font-size:11px;padding:5px}.nav button.active{color:#68d7ff}.nav span{display:block;font-size:19px;margin-bottom:3px}.statusdot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--danger);margin-right:7px}.statusdot.on{background:var(--good)}.confirm{font-size:13px;line-height:1.5}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}</style></head><body><div class="app">
-<header class="top"><div class="brand"><div class="logo"><svg viewBox="0 0 40 40" fill="none"><path d="M4 25c7-12 13-12 20 0s13 12 12-2" stroke="white" stroke-width="4" stroke-linecap="round"/><path d="M5 31c6-6 12-6 18 0 5 5 9 5 12 0" stroke="#bff3ff" stroke-width="3" stroke-linecap="round"/></svg></div><div><b>Atlantic Waves</b><small>Deriv Digit Pilot • Live build</small></div></div><div class="pill" id="modePill">NOT CONNECTED</div></header>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111f">
+<title>Atlantic Waves — Live Fixed</title>
+<style>
+:root{--bg:#06101d;--card:#0b192a;--card2:#102238;--line:#1d334b;--text:#f3f7fb;--muted:#91a5bb;--accent:#25b9ff;--danger:#ff5364;--good:#37d38a;--warn:#ffc857}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% -10%,#0f3c5d 0,#06101d 38%);color:var(--text);font-family:Inter,system-ui,sans-serif;min-height:100vh}
+.app{max-width:520px;margin:auto;min-height:100vh;padding-bottom:86px}
+.top{padding:22px 18px 10px;display:flex;align-items:center;justify-content:space-between}
+.brand{display:flex;gap:11px;align-items:center}
+.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(145deg,#27c7ff,#1360ff);display:grid;place-items:center}
+.logo svg{width:30px}
+.brand b{font-size:20px}
+.brand small{display:block;color:var(--muted);margin-top:2px}
+.pill{border:1px solid #27506c;background:#0a2335;padding:7px 10px;border-radius:99px;font-size:11px;color:#82dfff}
+.hero{margin:10px 16px;padding:20px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(160deg,#0e2338,#091624)}
+.label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1.3px}
+.balance{font-size:36px;font-weight:800;margin:5px 0}
+.pl{font-weight:700}.good{color:var(--good)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.metric{background:#081525;border:1px solid var(--line);border-radius:16px;padding:14px}
+.metric b{display:block;font-size:19px;margin-top:5px}
+.section{padding:8px 16px}
+.section h2{font-size:15px;margin:10px 2px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin-bottom:12px}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.muted{color:var(--muted)}
+.value{font-weight:700}
+.btn{width:100%;border:0;border-radius:15px;padding:15px;font-weight:800;font-size:15px;cursor:pointer;margin-top:9px}
+.start{background:linear-gradient(135deg,#22baff,#1877ff);color:#fff}
+.stop{background:#24121a;color:#ff8591;border:1px solid #5a2632}
+.secondary{background:#102238;color:#cceeff;border:1px solid #24435e}
+.danger{background:#3a1219;color:#ffb0b8;border:1px solid #6b2732}
+.field{margin:13px 0}
+.field label{font-size:12px;color:var(--muted)}
+select,input{width:100%;background:#081525;color:#fff;border:1px solid #28435d;border-radius:12px;padding:12px;font:inherit;margin-top:7px}
+.notice{padding:11px 13px;border-radius:13px;background:#211b0d;border:1px solid #594819;color:#f2d48a;font-size:12px;line-height:1.45}
+.hidden{display:none}
+.trade{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;border-top:1px solid var(--line);padding:12px 0}
+.badge{font-size:10px;padding:5px 8px;border-radius:8px;background:#12301f;color:#6ff0aa}
+.loss{background:#35151c;color:#ff8792}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:520px;width:100%;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#071321ee;backdrop-filter:blur(16px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);z-index:10}
+.nav button{background:none;border:0;color:#71869c;font-size:11px;padding:5px}
+.nav button.active{color:#68d7ff}
+.nav span{display:block;font-size:19px;margin-bottom:3px}
+.statusdot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--danger);margin-right:7px}
+.statusdot.on{background:var(--good)}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+  <div class="brand">
+    <div class="logo">
+      <svg viewBox="0 0 40 40" fill="none"><path d="M4 25c7-12 13-12 20 0s13 12 12-2" stroke="white" stroke-width="4" stroke-linecap="round"/><path d="M5 31c6-6 12-6 18 0 5 5 9 5 12 0" stroke="#bff3ff" stroke-width="3" stroke-linecap="round"/></svg>
+    </div>
+    <div><b>Atlantic Waves</b><small>Direct Connection Fix</small></div>
+  </div>
+  <div class="pill" id="modePill">OFFLINE</div>
+</header>
+
 <main>
-<section id="home" class="page"><div class="hero"><div class="label">Account balance</div><div class="balance" id="balance">$—</div><div id="pl" class="good">+$0.00 session P/L</div><div class="grid"><div class="metric"><span class="label">Bot status</span><b id="botStatus">STOPPED</b></div><div class="metric"><span class="label">Connection</span><b id="connection">OFFLINE</b></div></div></div><div class="section"><div class="card"><div class="row"><div><div class="label">Strategy</div><div class="value">Digit Differs</div></div><span class="badge">AGGRESSIVE</span></div><div class="row" style="margin-top:14px"><span class="muted">Instrument</span><span class="value" id="instrument">Volatility 100 (1s)</span></div><div class="row" style="margin-top:9px"><span class="muted">Last digit</span><span class="value mono" id="lastDigit">—</span></div></div><div class="card"><div style="text-align:center;padding:10px"><div class="label">Atlantic Waves</div><div style="font-size:24px;font-weight:900" id="engineText">READY</div><div class="muted" id="engineSub">Connect your Deriv account first</div></div><button class="btn start" id="startBtn">START REAL TRADING</button><button class="btn stop hidden" id="stopBtn">STOP BOT</button></div><div class="notice">Hard controls: $1 starting stake · 1.70× progression · $8 maximum stake · 4-loss stop · $25 profit target · $15 daily loss limit. These controls limit exposure; they do not make trading profitable.</div></div><div class="section"><h2>Recent activity</h2><div class="card" id="trades"><div class="muted">No live trades yet.</div></div></div></section>
-<section id="strategy" class="page hidden"><div class="section"><h2>Strategy Settings</h2><div class="card"><div class="field"><label>Strategy</label><select><option>Digit Differs</option></select></div><div class="field"><label>Instrument</label><select id="instrumentSelect"><option value="1HZ100V">Volatility 100 (1s)</option><option value="1HZ75V">Volatility 75 (1s)</option><option value="1HZ50V">Volatility 50 (1s)</option><option value="1HZ10V">Volatility 10 (1s)</option></select></div><div class="field"><label>Analysis window</label><input id="window" type="number" min="50" max="500" value="200"></div><div class="notice">The live engine requests a fresh Digit Differs proposal before every order, then buys only if the quoted ask price is within the stake limit.</div></div></div></section>
-<section id="risk" class="page hidden"><div class="section"><h2>Real-Money Safety</h2><div class="card"><div class="field"><label>Starting stake</label><input value="$1.00" readonly></div><div class="field"><label>Loss multiplier</label><input value="1.70×" readonly></div><div class="field"><label>Maximum stake</label><input value="$8.00" readonly></div><div class="field"><label>Maximum consecutive losses</label><input value="4" readonly></div><div class="field"><label>Daily profit target</label><input value="$25.00" readonly></div><div class="field"><label>Daily maximum loss</label><input value="$15.00" readonly></div><div class="notice">For real money, the bot stops locally when any hard limit is reached. You should also set independent account-level controls where available.</div></div></div></section>
-<section id="account" class="page hidden"><div class="section"><h2>Deriv Account</h2><div class="card"><div id="authState" class="confirm"><span class="statusdot"></span>Not authenticated</div><button class="btn start" id="loginBtn">CONNECT DERIV ACCOUNT</button><button class="btn danger hidden" id="logoutBtn">DISCONNECT</button><div class="field"><label>Trading account</label><select id="accountSelect" disabled><option>Connect first</option></select></div><button class="btn secondary" id="connectBtn" disabled>OPEN TRADING CONNECTION</button><p class="muted" style="font-size:12px;line-height:1.5">Atlantic Waves uses Deriv OAuth 2.0 so your Deriv password is never entered into this app. The server exchanges the authorization code and obtains the authenticated trading WebSocket URL.</p></div></div></section>
-<section id="guide" class="page hidden"><div class="section"><h2>Live Trading Guide</h2><div class="card"><ol class="muted" style="line-height:1.7"><li>Register an OAuth application in Deriv’s developer dashboard.</li><li>Set its redirect URL to your deployed <span class="mono">/oauth/callback</span>.</li><li>Put the client ID and redirect URL in the server environment.</li><li>Open Atlantic Waves and connect your Deriv account.</li><li>Select the intended real account.</li><li>Open the trading connection and verify the balance.</li><li>Only then arm real trading.</li></ol><div class="notice">Never send your Deriv password, PAT, OAuth client secret, or access token to anyone in chat. Keep credentials on the server.</div></div></div></section>
-</main><nav class="nav"><button class="active" data-page="home"><span>⌂</span>Home</button><button data-page="strategy"><span>◈</span>Strategy</button><button data-page="risk"><span>◉</span>Risk</button><button data-page="account"><span>◌</span>Account</button></nav></div>
+<section id="home" class="page">
+  <div class="hero">
+    <div class="label">Account balance</div>
+    <div class="balance" id="balance">$—</div>
+    <div id="pl" class="good">+$0.00 session P/L</div>
+    <div class="grid">
+      <div class="metric"><span class="label">Bot status</span><b id="botStatus">STOPPED</b></div>
+      <div class="metric"><span class="label">Connection</span><b id="connection">OFFLINE</b></div>
+    </div>
+  </div>
+  
+  <div class="section">
+    <div class="card">
+      <div class="row">
+        <div><div class="label">Strategy</div><div class="value">Digit Differs</div></div>
+        <span class="badge">AGGRESSIVE</span>
+      </div>
+      <div class="row" style="margin-top:14px"><span class="muted">Instrument</span><span class="value" id="instrument">Volatility 100 (1s)</span></div>
+      <div class="row" style="margin-top:9px"><span class="muted">Last digit</span><span class="value mono" id="lastDigit">—</span></div>
+    </div>
+    
+    <div class="card">
+      <div style="text-align:center;padding:10px">
+        <div class="label">Atlantic Waves Engine</div>
+        <div style="font-size:24px;font-weight:900" id="engineText">READY</div>
+        <div class="muted" id="engineSub">Connect using your Deriv API Token below</div>
+      </div>
+      <button class="btn start" id="startBtn">START TRADING</button>
+      <button class="btn stop hidden" id="stopBtn">STOP BOT</button>
+    </div>
+    
+    <div class="notice">Hard controls: $1 starting stake · 1.70× progression · $8 maximum stake · 4-loss stop · $25 profit target · $15 daily loss limit.</div>
+  </div>
+
+  <div class="section">
+    <h2>Recent activity</h2>
+    <div class="card" id="trades"><div class="muted">No live trades yet.</div></div>
+  </div>
+</section>
+
+<section id="strategy" class="page hidden">
+  <div class="section">
+    <h2>Strategy Settings</h2>
+    <div class="card">
+      <div class="field"><label>Strategy</label><select><option>Digit Differs</option></select></div>
+      <div class="field">
+        <label>Instrument</label>
+        <select id="instrumentSelect">
+          <option value="1HZ100V">Volatility 100 (1s)</option>
+          <option value="1HZ75V">Volatility 75 (1s)</option>
+          <option value="1HZ50V">Volatility 50 (1s)</option>
+          <option value="1HZ10V">Volatility 10 (1s)</option>
+        </select>
+      </div>
+      <div class="field"><label>Analysis window</label><input id="window" type="number" min="50" max="500" value="200"></div>
+    </div>
+  </div>
+</section>
+
+<section id="risk" class="page hidden">
+  <div class="section">
+    <h2>Real-Money Safety</h2>
+    <div class="card">
+      <div class="field"><label>Starting stake</label><input value="$1.00" readonly></div>
+      <div class="field"><label>Loss multiplier</label><input value="1.70×" readonly></div>
+      <div class="field"><label>Maximum stake</label><input value="$8.00" readonly></div>
+      <div class="field"><label>Maximum consecutive losses</label><input value="4" readonly></div>
+      <div class="field"><label>Daily profit target</label><input value="$25.00" readonly></div>
+      <div class="field"><label>Daily maximum loss</label><input value="$15.00" readonly></div>
+    </div>
+  </div>
+</section>
+
+<section id="account" class="page hidden">
+  <div class="section">
+    <h2>Deriv Direct Connection</h2>
+    <div class="card">
+      <div class="field">
+        <label>Deriv App ID (Default is public test ID)</label>
+        <input id="appIdInput" value="1089">
+      </div>
+      <div class="field">
+        <label>Deriv API Token (Get this from your Deriv API settings)</label>
+        <input id="tokenInput" type="password" placeholder="Paste your token here">
+      </div>
+      <button class="btn start" id="connectDirectBtn">CONNECT WEBSOCKET</button>
+      <button class="btn danger hidden" id="disconnectBtn">DISCONNECT</button>
+      <p class="muted" style="font-size:12px;line-height:1.5;margin-top:12px">This direct connection mode connects your browser securely straight to Deriv's official WebSocket gateway without requiring a separate backend server.</p>
+    </div>
+  </div>
+</section>
+
+<section id="guide" class="page hidden">
+  <div class="section">
+    <h2>Quick Setup Guide</h2>
+    <div class="card">
+      <ol class="muted" style="line-height:1.7">
+        <li>Go to your Deriv account settings and generate an **API Token** (ensure 'Read' and 'Trade' permissions are enabled).</li>
+        <li>Go to the **Account** tab in this app.</li>
+        <li>Paste your API Token and click **Connect WebSocket**.</li>
+        <li>Verify that your balance displays correctly and ticks are streaming on the Home screen.</li>
+        <li>Arm the bot using **Start Trading**.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+</main>
+
+<nav class="nav">
+  <button class="active" data-page="home"><span>⌂</span>Home</button>
+  <button data-page="strategy"><span>◈</span>Strategy</button>
+  <button data-page="risk"><span>◉</span>Risk</button>
+  <button data-page="account"><span>◌</span>Account</button>
+  <button data-page="guide"><span>📖</span>Guide</button>
+</nav>
+</div>
+
 <script>
-const S={auth:false,account:null,accounts:[],ws:null,running:false,balance:null,startBalance:null,pl:0,stake:1,losses:0,trades:[],digits:[],pending:null,lastTick:0,symbol:'1HZ100V',window:200};const $=id=>document.getElementById(id);const money=n=>(n>=0?'+':'-')+'$'+Math.abs(n).toFixed(2);function render(){$('botStatus').textContent=S.running?'RUNNING':'STOPPED';$('connection').textContent=S.ws?'ONLINE':'OFFLINE';$('connection').previousElementSibling; $('engineText').textContent=S.running?'ACTIVE':'READY';$('engineSub').textContent=S.ws?'Authenticated Deriv connection':'Connect your Deriv account first';$('balance').textContent=S.balance==null?'$—':'$'+Number(S.balance).toFixed(2);$('pl').textContent=money(S.pl)+' session P/L';$('pl').className=S.pl>=0?'good':'';$('lastDigit').textContent=S.digits.length?S.digits.at(-1):'—';$('modePill').textContent=S.ws?'REAL ACCOUNT':'NOT CONNECTED';$('startBtn').classList.toggle('hidden',S.running);$('stopBtn').classList.toggle('hidden',!S.running);$('loginBtn').classList.toggle('hidden',S.auth);$('logoutBtn').classList.toggle('hidden',!S.auth);$('connectBtn').disabled=!S.auth\vert{}\vert{}!S.account;renderTrades()}function renderTrades(){const e=$('trades');if(!S.trades.length){e.innerHTML='<div class="muted">No live trades yet.</div>';return}e.innerHTML=S.trades.slice(-8).reverse().map(t=>`<div class="trade"><div><b>Digit Differs</b><div class="muted">Avoid ${t.digit} · stake $${Number(t.stake).toFixed(2)}</div></div><span class="badge ${t.win?'':'loss'}">${t.win?'WIN':'LOSS'} ${t.win?'+':'-'}$${Math.abs(t.pnl).toFixed(2)}</span></div>`).join('')}
-async function loadSession(){const r=await fetch('/api/session');const j=await r.json();S.auth=j.authenticated;render();if(S.auth)loadAccounts()}async function loadAccounts(){const r=await fetch('/api/accounts');const j=await r.json();if(!r.ok)return alert(j.error||'Could not load accounts');S.accounts=j.data?.accounts||j.accounts||[];const sel=$('accountSelect');sel.disabled=false;sel.innerHTML=S.accounts.map(a=>`<option value="${a.account_id||a.id}">${a.account_id||a.id} — ${a.currency||''} ${a.account_type||''}</option>`).join('');S.account=sel.value;render()}$('accountSelect').onchange=e=>{S.account=e.target.value;};$('loginBtn').onclick=()=>location.href='/auth/login';$('logoutBtn').onclick=async()=>{await fetch('/auth/logout',{method:'POST'});if(S.ws)S.ws.close();location.reload()};$('connectBtn').onclick=async()=>{if(!S.account)return;const r=await fetch('/api/otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accountId:S.account})});const j=await r.json();if(!r.ok)return alert(j.error||'Could not create trading session');const url=j.data?.url;if(!url)return alert('Deriv did not return a trading WebSocket URL');S.ws=new WebSocket(url);S.ws.onopen=()=>{S.ws.send(JSON.stringify({balance:1,subscribe:1,req_id:1}));S.ws.send(JSON.stringify({ticks:S.symbol,subscribe:1,req_id:2}));render()};S.ws.onclose=()=>{S.ws=null;S.running=false;render()};S.ws.onerror=()=>{S.ws=null;S.running=false;render()};S.ws.onmessage=e=>handle(JSON.parse(e.data));render()};
-function handle(m){if(m.msg_type==='balance'&&m.balance){S.balance=Number(m.balance.balance);if(S.startBalance==null)S.startBalance=S.balance;S.pl=S.balance-S.startBalance;render()}if(m.msg_type==='tick'&&m.tick){const d=Number(String(m.tick.quote).replace(/\./g,'').slice(-1));if(Number.isFinite(d)){S.digits.push(d);if(S.digits.length>500)S.digits.shift();S.lastTick=Date.now();render();if(S.running&&!S.pending)maybeTrade(d)}}if(m.msg_type==='proposal'&&m.proposal&&S.pending?.type==='proposal'){const p=m.proposal;const ask=Number(p.ask_price);if(!Number.isFinite(ask)||ask>S.stake){S.pending=null;return}S.pending={type:'buy',proposalId:p.id,stake:S.stake};S.ws.send(JSON.stringify({buy:p.id,price:ask,req_id:Date.now()%1000000}))}if(m.msg_type==='buy'&&m.buy){S.pending={type:'contract',contractId:m.buy.contract_id,stake:S.stake,digit:S.pending?.digit??0};S.ws.send(JSON.stringify({proposal_open_contract:1,contract_id:m.buy.contract_id,subscribe:1,req_id:Date.now()%1000000}))}if(m.msg_type==='proposal_open_contract'&&m.proposal_open_contract){const c=m.proposal_open_contract;if(c.is_sold||['won','lost','sold'].includes(c.status)){const pnl=Number(c.profit??(c.sell_price-c.buy_price));const win=pnl>0;S.balance+=pnl;S.pl+=pnl;S.trades.push({digit:S.pending?.digit??0,stake:S.pending?.stake??S.stake,win,pnl});if(win){S.stake=1;S.losses=0}else{S.losses++;S.stake=Math.min(8,Number((S.stake*1.7).toFixed(2)))}S.pending=null;if(S.losses>=4||S.pl<=-15||S.pl>=25){S.running=false;S.stake=1}render()}}}
-function mostFrequent(a){const c=Array(10).fill(0);a.forEach(x=>c[x]++);let mi=0;for(let i=1;i<10;i++)if(c[i]>c[mi])mi=i;return mi}function maybeTrade(last){if(!S.ws||S.pending||S.digits.length<50)return;const avoid=mostFrequent(S.digits.slice(-S.window));S.pending={type:'proposal',digit:avoid};S.ws.send(JSON.stringify({proposal:1,amount:S.stake,basis:'stake',contract_type:'DIGITDIFF',currency:'USD',duration:1,duration_unit:'t',barrier:String(avoid),underlying_symbol:S.symbol,req_id:Date.now()%1000000}))}
-$('startBtn').onclick=()=>{if(!S.ws)return alert('Connect the Deriv trading account first.');if(!confirm('REAL MONEY: Start Atlantic Waves on the selected Deriv account?'))return;S.running=true;S.stake=1;S.losses=0;S.startBalance=S.balance;S.pl=0;render()};$('stopBtn').onclick=()=>{S.running=false;render()};$('instrumentSelect').onchange=e=>{S.symbol=e.target.value;$('instrument').textContent=e.target.options[e.target.selectedIndex].text;if(S.ws){S.ws.send(JSON.stringify({forget_all:'ticks'}));S.ws.send(JSON.stringify({ticks:S.symbol,subscribe:1,req_id:3}))}};$('window').onchange=e=>S.window=Math.max(50,Math.min(500,Number(e.target.value)\vert{}\vert{}200));document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('.page').forEach(p=>p.classList.add('hidden'));$(b.dataset.page).classList.remove('hidden')});loadSession();render();
-</script></body></html>
+const S = {
+  ws: null,
+  running: false,
+  balance: null,
+  startBalance: null,
+  pl: 0,
+  stake: 1,
+  losses: 0,
+  trades: [],
+  digits: [],
+  pending: null,
+  symbol: '1HZ100V',
+  window: 200
+};
+
+const $ = id => document.getElementById(id);
+const money = n => (n >= 0 ? '+' : '-') + '$' + Math.abs(n).toFixed(2);
+
+function render() {
+  $('botStatus').textContent = S.running ? 'RUNNING' : 'STOPPED';
+  $('connection').textContent = S.ws && S.ws.readyState === WebSocket.OPEN ? 'ONLINE' : 'OFFLINE';
+  $('engineText').textContent = S.running ? 'ACTIVE' : 'READY';
+  $('engineSub').textContent = S.ws && S.ws.readyState === WebSocket.OPEN ? 'Connected to Deriv Market' : 'Connect via Account Tab first';
+  $('balance').textContent = S.balance == null ? '$—' : '$' + Number(S.balance).toFixed(2);$('pl').textContent = money(S.pl) + ' session P/L';
+  $('pl').className = S.pl >= 0 ? 'good' : '';$('lastDigit').textContent = S.digits.length ? S.digits.at(-1) : '—';
+  $('modePill').textContent = S.ws && S.ws.readyState === WebSocket.OPEN ? 'CONNECTED' : 'OFFLINE';
+  $('startBtn').classList.toggle('hidden', S.running);$('stopBtn').classList.toggle('hidden', !S.running);
+  $('connectDirectBtn').classList.toggle('hidden', S.ws !== null);$('disconnectBtn').classList.toggle('hidden', S.ws === null);
+  renderTrades();
+}
+
+function renderTrades() {
+  const e = $('trades');
+  if (!S.trades.length) {
+    e.innerHTML = '<div class="muted">No live trades yet.</div>';
+    return;
+  }
+  e.innerHTML = S.trades.slice(-8).reverse().map(t => `
+    <div class="trade">
+      <div><b>Digit Differs</b><div class="muted">Avoid ${t.digit} · stake $${Number(t.stake).toFixed(2)}</div></div>
+      <span class="badge ${t.win ? '' : 'loss'}">${t.win ? 'WIN' : 'LOSS'} ${t.win ? '+' : '-'}$${Math.abs(t.pnl).toFixed(2)}</span>
+    </div>
+  `).join('');
+}
+
+$('connectDirectBtn').onclick = () => {
+  const appId = $('appIdInput').value.trim() || '1089';
+  const token = $('tokenInput').value.trim();
+  
+  if (!token) {
+    return alert('Please enter your Deriv API token in the field.');
+  }
+
+  const wsUrl = `wss://ws.derivws.com/websockets/v3?app_id=${appId}`;
+  S.ws = new WebSocket(wsUrl);
+
+  S.ws.onopen = () => {
+    // Authorize first
+    S.ws.send(JSON.stringify({ authorize: token }));
+  };
+
+  S.ws.onmessage = e => {
+    const m = JSON.parse(e.data);
+    handle(m);
+  };
+
+  S.ws.onclose = () => {
+    S.ws = null;
+    S.running = false;
+    render();
+    alert('WebSocket connection closed.');
+  };
+
+  S.ws.onerror = () => {
+    S.ws = null;
+    S.running = false;
+    render();
+  };
+};
+
+$('disconnectBtn').onclick = () => {
+  if (S.ws) {
+    S.ws.close();
+    S.ws = null;
+  }
+  S.running = false;
+  render();
+};
+
+function handle(m) {
+  if (m.msg_type === 'authorize') {
+    if (m.error) {
+      alert('Authorization failed: ' + m.error.message);
+      S.ws.close();
+      return;
+    }
+    // Successfully authorized, subscribe to balance and ticks
+    S.ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
+    S.ws.send(JSON.stringify({ ticks: S.symbol, subscribe: 1 }));
+    render();
+  }
+
+  if (m.msg_type === 'balance' && m.balance) {
+    S.balance = Number(m.balance.balance);
+    if (S.startBalance == null) S.startBalance = S.balance;
+    S.pl = S.balance - S.startBalance;
+    render();
+  }
+
+  if (m.msg_type === 'tick' && m.tick) {
+    const quoteStr = String(m.tick.quote);
+    const d = Number(quoteStr.slice(-1));
+    if (Number.isFinite(d)) {
+      S.digits.push(d);
+      if (S.digits.length > 500) S.digits.shift();
+      render();
+      if (S.running && !S.pending) maybeTrade(d);
+    }
+  }
+
+  if (m.msg_type === 'proposal' && m.proposal && S.pending?.type === 'proposal') {
+    const p = m.proposal;
+    const ask = Number(p.ask_price);
+    if (!Number.isFinite(ask) || ask > S.stake) {
+      S.pending = null;
+      return;
+    }
+    S.pending = { type: 'buy', proposalId: p.id, stake: S.stake, digit: S.pending.digit };
+    S.ws.send(JSON.stringify({ buy: p.id, price: ask }));
+  }
+
+  if (m.msg_type === 'buy' && m.buy) {
+    S.pending = { type: 'contract', contractId: m.buy.contract_id, stake: S.stake, digit: S.pending?.digit ?? 0 };
+    S.ws.send(JSON.stringify({ proposal_open_contract: 1, contract_id: m.buy.contract_id, subscribe: 1 }));
+  }
+
+  if (m.msg_type === 'proposal_open_contract' && m.proposal_open_contract) {
+    const c = m.proposal_open_contract;
+    if (c.is_sold || ['won', 'lost', 'sold'].includes(c.status)) {
+      const pnl = Number(c.profit ?? (c.sell_price - c.buy_price));
+      const win = pnl > 0;
+      S.balance += pnl;
+      S.pl += pnl;
+      S.trades.push({ digit: S.pending?.digit ?? 0, stake: S.pending?.stake ?? S.stake, win, pnl });
+      
+      if (win) {
+        S.stake = 1;
+        S.losses = 0;
+      } else {
+        S.losses++;
+        S.stake = Math.min(8, Number((S.stake * 1.7).toFixed(2)));
+      }
+      S.pending = null;
+
+      if (S.losses >= 4 || S.pl <= -15 || S.pl >= 25) {
+        S.running = false;
+        S.stake = 1;
+      }
+      render();
+    }
+  }
+}
+
+function mostFrequent(a) {
+  const c = Array(10).fill(0);
+  a.forEach(x => c[x]++);
+  let mi = 0;
+  for (let i = 1; i < 10; i++) if (c[i] > c[mi]) mi = i;
+  return mi;
+}
+
+function maybeTrade(last) {
+  if (!S.ws || S.pending || S.digits.length < 50) return;
+  const avoid = mostFrequent(S.digits.slice(-S.window));
+  S.pending = { type: 'proposal', digit: avoid };
+  S.ws.send(JSON.stringify({
+    proposal: 1,
+    amount: S.stake,
+    basis: 'stake',
+    contract_type: 'DIGITDIFF',
+    currency: 'USD',
+    duration: 1,
+    duration_unit: 't',
+    barrier: String(avoid),
+    underlying_symbol: S.symbol
+  }));
+}
+
+$('startBtn').onclick = () => {
+  if (!S.ws || S.ws.readyState !== WebSocket.OPEN) return alert('Connect your Deriv WebSocket first in the Account tab.');
+  if (!confirm('Start Atlantic Waves? Ensure your risk parameters are correct.')) return;
+  S.running = true;
+  S.stake = 1;
+  S.losses = 0;
+  S.startBalance = S.balance;
+  S.pl = 0;
+  render();
+};
+
+$('stopBtn').onclick = () => {
+  S.running = false;
+  render();
+};
+
+$('instrumentSelect').onchange = e => {
+  S.symbol = e.target.value;
+  $('instrument').textContent = e.target.options[e.target.selectedIndex].text;
+  if (S.ws && S.ws.readyState === WebSocket.OPEN) {
+    S.ws.send(JSON.stringify({ forget_all: 'ticks' }));
+    S.ws.send(JSON.stringify({ ticks: S.symbol, subscribe: 1 }));
+  }
+};
+
+$('window').onchange = e => S.window = Math.max(50, Math.min(500, Number(e.target.value) || 200));
+
+document.querySelectorAll('.nav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.nav button').forEach(x => x.classList.remove('active'));
+  b.classList.add('active');
+  document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+  $(b.dataset.page).classList.remove('hidden');
+});
+
+render();
+</script>
+</body>
+</html>
