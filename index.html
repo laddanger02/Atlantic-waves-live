@@ -612,6 +612,11 @@
                         <option value="real">Real Account (Live WS)</option>
                     </select>
                 </div>
+                <div class="input-group" id="manualTokenGroup" style="display:none;">
+                    <label>Deriv API Token (Optional / Deployment Override)</label>
+                    <input type="text" id="manualTokenInput" placeholder="Paste token here if /api/me fails">
+                    <button class="btn connect-btn" style="margin-top: 8px; padding: 8px;" onclick="connectWithManualToken()">Connect With Token</button>
+                </div>
                 <div class="input-group">
                     <label>Connection Status</label>
                     <div id="connBadge" style="font-size: 13px; font-weight: 600; color: var(--green);">Connected (Virtual)</div>
@@ -701,7 +706,9 @@
         connText: document.getElementById('connText'),
         connBadge: document.getElementById('connBadge'),
         connectDerivBtn: document.getElementById('connectDerivBtn'),
-        logoutBtn: document.getElementById('logoutBtn')
+        logoutBtn: document.getElementById('logoutBtn'),
+        manualTokenGroup: document.getElementById('manualTokenGroup'),
+        manualTokenInput: document.getElementById('manualTokenInput')
     };
 
     // Tab Navigation Logic
@@ -736,14 +743,30 @@
             el.connText.textContent = appState.clientId;
             el.connectDerivBtn.style.display = 'none';
             el.logoutBtn.style.display = 'none';
+            el.manualTokenGroup.style.display = 'none';
             
             if (appState.ws) { appState.ws.close(); }
             startSimulationStream();
         } else {
             el.modePill.textContent = "LIVE";
+            el.manualTokenGroup.style.display = 'flex';
             stopSimulationStream();
             checkAuthSession();
         }
+    }
+
+    // Connect using manually supplied deployment token
+    function connectWithManualToken() {
+        const tokenVal = el.manualTokenInput.value.trim();
+        if (!tokenVal) {
+            alert("Please enter a valid Deriv token.");
+            return;
+        }
+        appState.token = tokenVal;
+        appState.connected = true;
+        el.connBadge.textContent = "Connecting...";
+        el.connBadge.style.color = "var(--accent)";
+        initDerivWebSocket('1089'); // Default default App ID fallback
     }
 
     // 1. Fetch token and connection info from /api/me (for Real mode)
@@ -751,6 +774,7 @@
         if (appState.mode === 'demo') return;
         try {
             const res = await fetch('/api/me');
+            if (!res.ok) throw new Error("API /api/me endpoint unavailable");
             const data = await res.json();
             if (data && data.connected && data.tokens && data.tokens.access_token) {
                 appState.connected = true;
@@ -769,7 +793,8 @@
                 handleDisconnectedState();
             }
         } catch (err) {
-            console.warn("Backend /api/me check fallback simulated/failed:", err);
+            console.warn("Backend /api/me check fallback triggered:", err);
+            // If API route fails on cloud deployment, keep manual input option open
             handleDisconnectedState();
         }
     }
@@ -778,9 +803,9 @@
         if (appState.mode === 'demo') return;
         appState.connected = false;
         el.modePill.textContent = "NOT CONNECTED";
-        el.connBadge.textContent = "Disconnected";
+        el.connBadge.textContent = "Disconnected / Manual Token Needed";
         el.connBadge.style.color = "var(--red)";
-        el.connText.textContent = "Not authorized";
+        el.connText.textContent = "Please enter token below";
         el.connectDerivBtn.style.display = 'block';
         el.logoutBtn.style.display = 'none';
         el.serverText.textContent = "OFFLINE";
@@ -805,7 +830,7 @@
         appState.simInterval = setInterval(() => {
             const randomDigit = Math.floor(Math.random() * 10);
             handleIncomingTick(randomDigit);
-        }, 800); // 1 tick every 800ms
+        }, 800);
     }
 
     function stopSimulationStream() {
@@ -817,13 +842,23 @@
 
     // 2. Initialize Deriv WebSocket Connection & Authorize (for Real mode)
     function initDerivWebSocket(appId) {
-        const wsUrl = `wss://ws.derivws.com/websockets/v3?app_id=${appId || '1089'}`;
+        const wsAppId = appId || '1089';
+        const wsUrl = `wss://ws.derivws.com/websockets/v3?app_id=${wsAppId}`;
+        
+        if (appState.ws) {
+            appState.ws.close();
+        }
+
         appState.ws = new WebSocket(wsUrl);
 
         appState.ws.onopen = () => {
             el.serverText.textContent = "ONLINE";
             el.dot.classList.add('online');
-            appState.ws.send(JSON.stringify({ authorize: appState.token }));
+            if (appState.token) {
+                appState.ws.send(JSON.stringify({ authorize: appState.token }));
+            } else {
+                console.error("No authorization token provided for WS");
+            }
         };
 
         appState.ws.onmessage = (event) => {
@@ -831,7 +866,8 @@
             handleWsMessage(data);
         };
 
-        appState.ws.onerror = () => {
+        appState.ws.onerror = (err) => {
+            console.error("WebSocket error state:", err);
             el.serverText.textContent = "ERROR";
             el.dot.classList.remove('online');
         };
@@ -839,9 +875,6 @@
         appState.ws.onclose = () => {
             el.serverText.textContent = "OFFLINE";
             el.dot.classList.remove('online');
-            if (appState.mode === 'real') {
-                setTimeout(checkAuthSession, 5000);
-            }
         };
     }
 
@@ -857,9 +890,12 @@
         if (msgType === 'authorize') {
             if (data.error) {
                 console.error("Authorization failed:", data.error.message);
-                handleDisconnectedState();
+                el.connBadge.textContent = "Auth Failed: " + data.error.message;
+                el.connBadge.style.color = "var(--red)";
                 return;
             }
+            el.connBadge.textContent = "Authorized Successfully";
+            el.connBadge.style.color = "var(--green)";
             appState.ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
             subscribeTicks();
         }
@@ -968,15 +1004,13 @@
                 symbol: appState.currentSymbol
             }));
         } else {
-            // Simulated Demo Trade Execution
             appState.activeContractId = Math.floor(1000000000 + Math.random() * 900000000);
             const stake = appState.currentStake;
             
-            // Simulate 1-tick contract resolution outcome (~85% win probability on rarest digit)
             appState.simTradeTimeout = setTimeout(() => {
                 const resolutionDigit = Math.floor(Math.random() * 10);
                 const isWin = resolutionDigit !== barrierDigit;
-                const payout = stake * 0.95; // standard diff payout approx
+                const payout = stake * 0.95;
                 const profit = isWin ? payout : -stake;
                 
                 const contractData = {
@@ -1057,7 +1091,7 @@
     // 7. Start / Stop Bot Button Event Handlers
     el.startBtn.addEventListener('click', () => {
         if (appState.mode === 'real' && (!appState.connected || !appState.token)) {
-            alert("Please connect your Deriv Account first via the Account tab.");
+            alert("Please connect your Deriv Account first or supply a token via the Account tab.");
             switchTab('account', document.querySelectorAll('.nav-item')[3]);
             return;
         }
