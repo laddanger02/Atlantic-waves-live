@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#07111f">
-<title>Atlantic Waves — Live Fixed</title>
+<title>Atlantic Waves — Live & Tick Engine Ready</title>
 <style>
 :root{--bg:#06101d;--card:#0b192a;--card2:#102238;--line:#1d334b;--text:#f3f7fb;--muted:#91a5bb;--accent:#25b9ff;--danger:#ff5364;--good:#37d38a;--warn:#ffc857}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% -10%,#0f3c5d 0,#06101d 38%);color:var(--text);font-family:Inter,system-ui,sans-serif;min-height:100vh}
@@ -42,12 +42,11 @@ select,input{width:100%;background:#081525;color:#fff;border:1px solid #28435d;b
 .trade{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;border-top:1px solid var(--line);padding:12px 0}
 .badge{font-size:10px;padding:5px 8px;border-radius:8px;background:#12301f;color:#6ff0aa}
 .loss{background:#35151c;color:#ff8792}
-.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:520px;width:100%;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#071321ee;backdrop-filter:blur(16px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(4,1fr);z-index:10}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);max-width:520px;width:100%;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:#071321ee;backdrop-filter:blur(16px);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);z-index:10}
 .nav button{background:none;border:0;color:#71869c;font-size:11px;padding:5px}
 .nav button.active{color:#68d7ff}
 .nav span{display:block;font-size:19px;margin-bottom:3px}
 .statusdot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--danger);margin-right:7px}
-.statusdot.on{background:var(--good)}
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
 </style>
 </head>
@@ -58,7 +57,7 @@ select,input{width:100%;background:#081525;color:#fff;border:1px solid #28435d;b
     <div class="logo">
       <svg viewBox="0 0 40 40" fill="none"><path d="M4 25c7-12 13-12 20 0s13 12 12-2" stroke="white" stroke-width="4" stroke-linecap="round"/><path d="M5 31c6-6 12-6 18 0 5 5 9 5 12 0" stroke="#bff3ff" stroke-width="3" stroke-linecap="round"/></svg>
     </div>
-    <div><b>Atlantic Waves</b><small>Direct Connection Fix</small></div>
+    <div><b>Atlantic Waves</b><small>Live Fixed Engine</small></div>
   </div>
   <div class="pill" id="modePill">OFFLINE</div>
 </header>
@@ -89,7 +88,7 @@ select,input{width:100%;background:#081525;color:#fff;border:1px solid #28435d;b
       <div style="text-align:center;padding:10px">
         <div class="label">Atlantic Waves Engine</div>
         <div style="font-size:24px;font-weight:900" id="engineText">READY</div>
-        <div class="muted" id="engineSub">Connect using your Deriv API Token below</div>
+        <div class="muted" id="engineSub">Connect your API Token in the Account tab</div>
       </div>
       <button class="btn start" id="startBtn">START TRADING</button>
       <button class="btn stop hidden" id="stopBtn">STOP BOT</button>
@@ -139,19 +138,19 @@ select,input{width:100%;background:#081525;color:#fff;border:1px solid #28435d;b
 
 <section id="account" class="page hidden">
   <div class="section">
-    <h2>Deriv Direct Connection</h2>
+    <h2>Deriv Connection Settings</h2>
     <div class="card">
       <div class="field">
-        <label>Deriv App ID (Default is public test ID)</label>
+        <label>Deriv App ID</label>
         <input id="appIdInput" value="1089">
       </div>
       <div class="field">
-        <label>Deriv API Token (Get this from your Deriv API settings)</label>
-        <input id="tokenInput" type="password" placeholder="Paste your token here">
+        <label>Deriv API Token</label>
+        <input id="tokenInput" type="password" placeholder="Paste your API token here">
       </div>
       <button class="btn start" id="connectDirectBtn">CONNECT WEBSOCKET</button>
       <button class="btn danger hidden" id="disconnectBtn">DISCONNECT</button>
-      <p class="muted" style="font-size:12px;line-height:1.5;margin-top:12px">This direct connection mode connects your browser securely straight to Deriv's official WebSocket gateway without requiring a separate backend server.</p>
+      <p class="muted" style="font-size:12px;line-height:1.5;margin-top:12px">Enables direct websocket connectivity to pull market ticks and execute trades safely.</p>
     </div>
   </div>
 </section>
@@ -161,11 +160,11 @@ select,input{width:100%;background:#081525;color:#fff;border:1px solid #28435d;b
     <h2>Quick Setup Guide</h2>
     <div class="card">
       <ol class="muted" style="line-height:1.7">
-        <li>Go to your Deriv account settings and generate an **API Token** (ensure 'Read' and 'Trade' permissions are enabled).</li>
-        <li>Go to the **Account** tab in this app.</li>
+        <li>Generate an API Token from your Deriv account settings with **Read** and **Trade** permissions.</li>
+        <li>Open the **Account** tab in this app.</li>
         <li>Paste your API Token and click **Connect WebSocket**.</li>
-        <li>Verify that your balance displays correctly and ticks are streaming on the Home screen.</li>
-        <li>Arm the bot using **Start Trading**.</li>
+        <li>Watch the Home screen status switch to Online and observe real-time tick streaming.</li>
+        <li>Click **Start Trading** to run the engine.</li>
       </ol>
     </div>
   </div>
@@ -201,15 +200,16 @@ const $ = id => document.getElementById(id);
 const money = n => (n >= 0 ? '+' : '-') + '$' + Math.abs(n).toFixed(2);
 
 function render() {
+  const isOnline = S.ws && S.ws.readyState === WebSocket.OPEN;
   $('botStatus').textContent = S.running ? 'RUNNING' : 'STOPPED';
-  $('connection').textContent = S.ws && S.ws.readyState === WebSocket.OPEN ? 'ONLINE' : 'OFFLINE';
+  $('connection').textContent = isOnline ? 'ONLINE' : 'OFFLINE';
   $('engineText').textContent = S.running ? 'ACTIVE' : 'READY';
-  $('engineSub').textContent = S.ws && S.ws.readyState === WebSocket.OPEN ? 'Connected to Deriv Market' : 'Connect via Account Tab first';
+  $('engineSub').textContent = isOnline ? 'Connected to Deriv Market Stream' : 'Connect via Account Tab first';
   $('balance').textContent = S.balance == null ? '$—' : '$' + Number(S.balance).toFixed(2);$('pl').textContent = money(S.pl) + ' session P/L';
   $('pl').className = S.pl >= 0 ? 'good' : '';$('lastDigit').textContent = S.digits.length ? S.digits.at(-1) : '—';
-  $('modePill').textContent = S.ws && S.ws.readyState === WebSocket.OPEN ? 'CONNECTED' : 'OFFLINE';
+  $('modePill').textContent = isOnline ? 'CONNECTED' : 'OFFLINE';
   $('startBtn').classList.toggle('hidden', S.running);$('stopBtn').classList.toggle('hidden', !S.running);
-  $('connectDirectBtn').classList.toggle('hidden', S.ws !== null);$('disconnectBtn').classList.toggle('hidden', S.ws === null);
+  $('connectDirectBtn').classList.toggle('hidden', isOnline);$('disconnectBtn').classList.toggle('hidden', !isOnline);
   renderTrades();
 }
 
@@ -232,14 +232,13 @@ $('connectDirectBtn').onclick = () => {
   const token = $('tokenInput').value.trim();
   
   if (!token) {
-    return alert('Please enter your Deriv API token in the field.');
+    return alert('Please enter your Deriv API token.');
   }
 
   const wsUrl = `wss://ws.derivws.com/websockets/v3?app_id=${appId}`;
   S.ws = new WebSocket(wsUrl);
 
   S.ws.onopen = () => {
-    // Authorize first
     S.ws.send(JSON.stringify({ authorize: token }));
   };
 
@@ -252,7 +251,6 @@ $('connectDirectBtn').onclick = () => {
     S.ws = null;
     S.running = false;
     render();
-    alert('WebSocket connection closed.');
   };
 
   S.ws.onerror = () => {
@@ -278,7 +276,7 @@ function handle(m) {
       S.ws.close();
       return;
     }
-    // Successfully authorized, subscribe to balance and ticks
+    // Successfully connected and authorized: Fetch initial balance and subscribe to active tick feed
     S.ws.send(JSON.stringify({ balance: 1, subscribe: 1 }));
     S.ws.send(JSON.stringify({ ticks: S.symbol, subscribe: 1 }));
     render();
